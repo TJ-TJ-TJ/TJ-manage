@@ -8,6 +8,10 @@ import axios from 'axios'
 
 axios.defaults.baseURL = 'http://loaclhost:3000/'
 
+axios.interceptors.request.use(config =>{
+  config.headers.Authorization = window.sessionStorage.getItem('token')
+  return config
+})
 
 
 Vue.config.productionTip = false

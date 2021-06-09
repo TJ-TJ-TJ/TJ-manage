@@ -13,7 +13,11 @@ import {
     Menu,
     MenuItem,
     Image,
-    Tooltip
+    Tooltip,
+    Input,
+    Popover,
+    Autocomplete,
+    Badge
 } from 'element-ui'
 
 Vue.use(Button)
@@ -30,3 +34,7 @@ Vue.use(Menu)
 Vue.use(MenuItem)
 Vue.use(Image)
 Vue.use(Tooltip)
+Vue.use(Input)
+Vue.use(Popover)
+Vue.use(Autocomplete)
+Vue.use(Badge)

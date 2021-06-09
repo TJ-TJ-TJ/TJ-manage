@@ -2,12 +2,15 @@
     <el-container>
         <el-aside width="68px">
             <div class="avatar">
-                <el-image 
-                src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"></el-image>
+                <el-badge is-dot type='success' class="state">
+                    <el-image 
+                    src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"></el-image>
+                </el-badge>
+                
             </div>
             <el-menu class="topMenu"
             collapse
-            active-text-color="#23CAFD"
+            active-text-color="#ff9645"
             default-active="1"
             router>
                 <el-menu-item index='/info'>
@@ -34,14 +37,16 @@
                 </el-menu-item>
             </el-menu>
         </el-aside>
-        <el-main>
+        <el-main class="main">
             <router-view></router-view>
         </el-main>
     </el-container>
 </template>
 <script>
 export default {
-    
+    created() {
+        window.document.title = '途家-管理面板'
+    }
 }
 </script>
 <style lang="scss" scope>
@@ -50,7 +55,7 @@ export default {
         height: 100%;
         min-height: 717px;
         .el-aside {
-            border: 1px solid #e6e6e6;
+            border-right: 1px solid #e6e6e6;
             overflow: hidden;
             .avatar {
                 width: 50px;
@@ -58,6 +63,10 @@ export default {
                 border: 1px solid #e6e6e6;
                 border-radius: 4px;
                 margin: 30% 5px;
+            }
+            .state {
+                width: 100%;
+                height: 100%;
             }
             .el-image {
                 width: 100%;
@@ -70,6 +79,9 @@ export default {
             .bottomMenu {
                 margin-top: 350px;
             }
+        }
+        .el-main {
+            padding: 0;
         }
     }
 </style>
