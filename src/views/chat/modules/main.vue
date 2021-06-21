@@ -7,7 +7,7 @@
         <!-- <el-main v-if="chatList.uname==''"></el-main> -->
         <el-main id="main">
             <el-button type="info" @click="history">获取历史消息</el-button>
-            <div class="record-wrapper" v-for="item in chatList" :key="item.id">
+            <div class="record-wrapper" v-for="(item,i) in chatList" :key="item.id">
                 <div v-if="item.uid == id" class="msg msg-right">
                     <!-- <div v-if="chat.uname==item.uname"> -->
                         <div class="img-wrapper">
@@ -34,9 +34,10 @@
                         <div>{{item.send_date+'/'+item.send_time}}</div>
                         <div class="message-wrapper message-wrapper-left">
                             <div class="message" v-if="item.type=='text'">{{ item.message }}</div>
-                            <div style="width: 100%; height: 24px" class="message" v-else-if="item.type == 'audio/mp3'" @click.stop="voice($event)">
+                            <div style="width: 100%; height: 24px" class="message" v-else-if="item.type == 'audio/mp3'" @click.stop="voice($event,i)">
                                 <div class="bg" id="bg"></div>
                                 <audio :src="item.audio" controls style="visibility: hidden; height:50px" @ended="stop"></audio>
+                                <el-badge v-show="item.audio_isRead==0"  is-dot class="itemAudio"></el-badge>
                             </div>
                         </div>
                     </div>
@@ -145,7 +146,7 @@ export default {
             document.onmouseup = null
         },
         // 语音消息播放
-        voice(e) {
+        async voice(e,i) {
             const ev = e.target.children[1]
             const cla = e.target.children[0]
             this.play = !this.play
@@ -156,7 +157,15 @@ export default {
                 cla.classList.remove('voicePlay')
                 ev.pause()
             }
-            
+            this.chatList[i].audio_isRead=1
+            this.$set(this.chatList,i,this.chatList[i])
+            //向父组件传值
+            // 更新语音消息为以读状态
+            let {data:res} = await this.axios.post('/updateVoiceRead',{
+                uid:this.chatList[i].uid,
+                sid:this.chatList[i].sid,
+                m_id:this.chatList[i].m_id
+            })
         },
         // 语音播放完毕
         stop() {
@@ -193,12 +202,17 @@ export default {
         },
         // 发送语音消息
         record() {
+            
             this.reco = !this.reco
             if(this.reco ==true) {
                 if(this.Audio = false) {
                     return this.alert.error('不支持语音')
                 }
                 recorder.start()
+                this.Toast.loading({
+                    message: '正在录音...',
+                    duration: 0
+                })
             }else {
                 let _this = this
                 recorder.getBlob(function(blob){
@@ -223,6 +237,8 @@ export default {
                     _this.chatList.push(sendObj)
                 })
                 recorder.stop();
+                this.Toast.clear()
+                this.Toast.success('发送成功')
                 const main = document.getElementById('main')
                 const text = document.getElementById('text')
                 main.scrollTop = main.scrollHeight
@@ -291,6 +307,7 @@ export default {
                 position: absolute;
                 right: 5%;
                 bottom: 15%;
+                height: 50px;
                 background-color: #ff9645;
             }
             .yuyin {
@@ -317,6 +334,7 @@ export default {
                 .dateFlex {
                     display: flex;
                     flex-direction: column;
+                    position:relative
                 }
                 .message-wrapper {
                     max-width: 220px;
@@ -378,5 +396,10 @@ export default {
         100% {
             background-position: 100%;
         }
+    }
+    .itemAudio {
+        position: absolute !important;
+        top: 33px;
+        right: -10px;
     }
 </style>

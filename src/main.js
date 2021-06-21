@@ -3,6 +3,9 @@ import App from './App.vue'
 import router from './router'
 import './element.js'
 import 'element-ui/lib/theme-chalk/index.css'
+import './vant.js'
+import 'vant/lib/index.css'
+
 import './assets/styles/gloabl.css'
 import axios from 'axios'
 import './assets/icon/iconfont.css'
@@ -10,11 +13,11 @@ import VueSocketIO from 'vue-socket.io'
 import ClientSocketIO from 'socket.io-client'
 Vue.use(new VueSocketIO({
   debug: false,
-  connection: ClientSocketIO.connect('http://localhost:9000',{
+  connection: ClientSocketIO.connect('http://kikyou.vip:9000',{
     autoConnect: false,
     transports: ['websocket'],
     auth: {
-      imgPath: 1,
+      imgPath: window.sessionStorage.getItem('avatar'),
       uid: window.sessionStorage.getItem('uid'), //到时候根据登录的账户不同 传递不同的id 用于确认私聊者的身份
       uname:window.sessionStorage.getItem('username')
     }
