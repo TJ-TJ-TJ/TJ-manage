@@ -63,7 +63,6 @@ export default {
     },
     sockets: {
         oToMessage(data) {
-            console.log(data)
             let  i = 0;
             for(var key in this.userList) {
                 if(this.userList[key].be.uid==data.uid){
@@ -88,17 +87,9 @@ export default {
             this.updateMsgRead()
         }
     },
-    // watch: {
-    //     userList: userList.forEach(function(item,key){
-    //         function (val,oldVal) {
-
-    //         }
-    //     })
-    // },
     methods: {
         resizeRight(event) {
             const list = document.getElementById('list')
-            const times = this.$refs.time
             const minWidth = 80
             const maxWidth = 680
             let firstX = event.clientX
@@ -107,16 +98,10 @@ export default {
                 let width = listWidth + (e.clientX - firstX)
                 if(width<minWidth) {
                     this.searchBtn = true
-                    for(var time of times) {
-                        time.style.display = 'none'
-                    }
                     document.onmousemove = null
                     return
-                }else if(width>minWidth&&width<maxWidth) {
+                }else if(width>=minWidth&&width<=maxWidth) {
                     this.searchBtn = false
-                    for(var time of times) {
-                        time.style.display = 'block'
-                    }
                     list.style.width = width + 'px'
                 }else if(width>maxWidth) {
                     document.onmousemove = null
@@ -134,21 +119,14 @@ export default {
             this.userList = ret.data
             this.chat.$emit('first', ret.data)
             this.updateMsgRead()
-            console.log(this.userList)
         },
         async chatWrite(message, uname, uid, head_img,i) {
             this.chat.$emit('msg', {message: message,uname:uname, uid: uid, headImg: head_img})
-            // this.userList.forEach((item, key)=>{
-            //         item.chatNum = 0
-                     this.userList[i].chatNum = 0
-                    this.$set(this.userList, i, this.userList[i])
-            // })
-            
-            console.log(this.userList)
+            this.userList[i].chatNum = 0
+            this.$set(this.userList, i, this.userList[i])
             const {data:ret} = await this.axios.post('updateMsgRead',{uid:uid,sid:window.sessionStorage.getItem('uid')})
-            if(ret.code === 200) {
-                
-                console.log('isOK')
+            if(ret.code !== 200) {
+                this.Toast.fail('网络错误')
             }
         },
         async updateMsgRead() {
@@ -161,8 +139,6 @@ export default {
                 this.userList[key].chatNum = sum
                 sum = 0
             })
-            console.log(this.userList)
-            console.log(sum)
         }
     },
     async created() {

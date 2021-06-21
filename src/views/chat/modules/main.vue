@@ -198,11 +198,9 @@ export default {
             const text = document.getElementById('text')
             main.scrollTop = main.scrollHeight
             text.focus()
-            console.log(this.user)
         },
         // 发送语音消息
         record() {
-            
             this.reco = !this.reco
             if(this.reco ==true) {
                 if(this.Audio = false) {
