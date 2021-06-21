@@ -28,21 +28,18 @@
       </el-popover>
     </div>
     <div class="friendList">
-      <div class="user" draggable="true" v-for="index in list" :key="index.id" @click="liao(index.id)">
-        <div class="userAvatar">
-          <el-image
-            :src="index.avatar"
-          ></el-image>
-        </div>
+      <div class="user" ref="user" draggable="true" v-for="(index,i) in userList" :key="index.id"  @click="chatWrite(index.msgArr, index.be.uname, index.sid, index.be.head_img,i)">
+            <div class="userAvatar">
+                    <el-image
+                        :src="index.be.head_img"
+                    ></el-image>
+            </div>
         <div class="info">
-          <div class="uname">{{index.uname}}</div>
-          <div class="news" v-if="index.context[index.context.length-1].type=='text'">{{index.context[index.context.length-1].context}}</div>
-          <div class="news" v-else>{{index.context[index.context.length-1].conmp}}</div>
-          
+          <div class="uname">{{index.be.uname}}</div>
+          <div class="news" v-if="index.msgArr[index.msgArr.length-1].type=='text'">{{index.msgArr[index.msgArr.length-1].message}}</div>
+          <div class="news" v-else>[语音消息]</div>
         </div>
-        <div class="infoTime">
-            <span ref="time">{{index.time}}</span>
-        </div>
+        <el-badge :hidden="index.chatNum==0?true:false" :value="index.chatNum"></el-badge>
       </div>
     </div>
     <div
@@ -54,26 +51,53 @@
   </el-aside>
 </template>
 <script>
+let sum = 0
 export default {
-    props:['userList'],
 	data() {
         return {
             search: '',
             searchBtn: false,
-            list: this.$props.userList
+            userList:[],
+            hidden: true,
         }
     },
-    watch: {
-        userList(val) {
-            this.list = val
+    sockets: {
+        oToMessage(data) {
+            console.log(data)
+            let  i = 0;
+            for(var key in this.userList) {
+                if(this.userList[key].be.uid==data.uid){
+                    this.userList[key].msgArr.push(data)
+                    i += 1
+                }
+            }
+            if(i==0){
+                this.userList.push(
+                        {
+                            be:{
+                                head_img:data.head_img,
+                                uid:data.uid,
+                                uname:data.uname
+                            },
+                            msgArr:[data],
+                            sid:data.sid,
+                            uid:data.uid
+                        }
+                    )
+            }
+            this.updateMsgRead()
         }
     },
+    // watch: {
+    //     userList: userList.forEach(function(item,key){
+    //         function (val,oldVal) {
+
+    //         }
+    //     })
+    // },
     methods: {
         resizeRight(event) {
             const list = document.getElementById('list')
-            // console.log(list)
-            // const colResize = this.$refs.colResize
-            // console.log(colResize)
             const times = this.$refs.time
             const minWidth = 80
             const maxWidth = 680
@@ -104,34 +128,57 @@ export default {
             document.onmousemove = null
             document.onmouseup = null
         },
-        liao(id) {
-            for(var key in this.list) {
-                if(this.list[key].id===id) {
-                    this.$emit('aside', this.list[key])
-                }
+        //获取所有聊天记录
+        async asideLists() {
+            const {data: ret} = await this.axios.get('/getHistoryMsg', {params:{uid:window.sessionStorage.getItem('uid')}})
+            this.userList = ret.data
+            this.chat.$emit('first', ret.data)
+            this.updateMsgRead()
+            console.log(this.userList)
+        },
+        async chatWrite(message, uname, uid, head_img,i) {
+            this.chat.$emit('msg', {message: message,uname:uname, uid: uid, headImg: head_img})
+            // this.userList.forEach((item, key)=>{
+            //         item.chatNum = 0
+                     this.userList[i].chatNum = 0
+                    this.$set(this.userList, i, this.userList[i])
+            // })
+            
+            console.log(this.userList)
+            const {data:ret} = await this.axios.post('updateMsgRead',{uid:uid,sid:window.sessionStorage.getItem('uid')})
+            if(ret.code === 200) {
+                
+                console.log('isOK')
             }
+        },
+        async updateMsgRead() {
+            this.userList.forEach((item, key)=>{
+                item.msgArr.forEach(index=>{
+                    if(item.sid===index.uid&&index.is_read==0||index.audio_isRead==0) {
+                        sum++
+                    }
+                })
+                this.userList[key].chatNum = sum
+                sum = 0
+            })
+            console.log(this.userList)
+            console.log(sum)
         }
-    }
+    },
+    async created() {
+        this.asideLists()
+        this.updateMsgRead()
+    },
 };
 </script>
-<style lang="scss" scope>
+<style lang="scss">
         #list {
             overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none; 
         }
         #list::-webkit-scrollbar {
-            /*设置滚动条的宽度*/
-            width: 8px;
-        }
-        #list::-webkit-scrollbar-thumb {
-            /*设置滚动条圆角*/
-            border-radius: 4px;
-            /*设置滚动条颜色*/
-            background-color: #e6e6e6;
-        }
-
-        #list::-webkit-scrollbar-track {
-            /*设置轨道颜色, 与背景色相同, 以便隐藏*/
-            background: #fff;
+            display: none;
         }
         .el-aside {
             border: none;
@@ -150,6 +197,8 @@ export default {
                 }
             }
             .friendList {
+                position: absolute;
+                top: 10%;
                 .user {
                     height: 60px;
                     position: relative;

@@ -17,7 +17,13 @@ import {
     Input,
     Popover,
     Autocomplete,
-    Badge
+    Badge,
+    Form,
+    FormItem,
+    Message,
+    Link,
+    Dialog,
+    Popconfirm
 } from 'element-ui'
 
 Vue.use(Button)
@@ -38,3 +44,9 @@ Vue.use(Input)
 Vue.use(Popover)
 Vue.use(Autocomplete)
 Vue.use(Badge)
+Vue.use(Form)
+Vue.use(FormItem)
+Vue.use(Link)
+Vue.use(Dialog)
+Vue.use(Popconfirm)
+Vue.prototype.alert = Message

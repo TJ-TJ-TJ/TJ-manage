@@ -1,76 +1,125 @@
 <template>
     <el-container class="chatWin">
         <el-header>
-            <span class="username" v-if="chat.uname==''">请选择联系人</span>
-            <span class="username" v-else>{{chat.uname}}</span>
+            
+            <span class="username">{{heardName}}</span>
         </el-header>
-        <el-main v-if="chat.uname==null"></el-main>
-        <el-main v-else>
-            <ul>
-                <li class="adverse" v-for="item in chat.context" :key="item.id">
-                    <!-- 对方消息 -->
-                    <div class="info">
-                        <div class="chatBox">
-                            <div class="winAvatar" draggable="true">
-                                <el-image :src="chat.avatar"></el-image>
+        <!-- <el-main v-if="chatList.uname==''"></el-main> -->
+        <el-main id="main">
+            <el-button type="info" @click="history">获取历史消息</el-button>
+            <div class="record-wrapper" v-for="item in chatList" :key="item.id">
+                <div v-if="item.uid == id" class="msg msg-right">
+                    <!-- <div v-if="chat.uname==item.uname"> -->
+                        <div class="img-wrapper">
+                            <img class="img" :src="myAvatar" />
+                        </div>
+                        <div class="dateFlex">
+                            <div>{{item.send_date+'/'+item.send_time}}</div>
+                            <div class="message-wrapper message-wrapper-right">
+                                <div class="message" v-if="item.type=='text'">{{ item.message }}</div>
+                                <div style="width: 100px; height:20px" class="message" v-else-if="item.type == 'audio/mp3'" @click="voice">
+                                    <div class="bg" id="bg"></div>
+                                    <audio ref="refaudio" :src="item.audio" @ended="stop"></audio>
+                                </div>
                             </div>
-                            <div class="message">
-                                <div class="time">{{chat.time}}</div>
-                                <div class="messInfo" v-if="item.type=='text'">{{item.context}}</div>
-                                <div class="messInfo" v-else>{{item.conmp}}</div>
+                        </div>
+                            
+                </div>
+                <!-- <div v-else-if="chat.uname!==item.uname"></div> -->
+                <div v-else class="msg msg-left">
+                    <div class="img-wrapper">
+                        <img class="img" :src="item.head_img" />
+                    </div>
+                    <div class="dateFlex">
+                        <div>{{item.send_date+'/'+item.send_time}}</div>
+                        <div class="message-wrapper message-wrapper-left">
+                            <div class="message" v-if="item.type=='text'">{{ item.message }}</div>
+                            <div style="width: 100%; height: 24px" class="message" v-else-if="item.type == 'audio/mp3'" @click.stop="voice($event)">
+                                <div class="bg" id="bg"></div>
+                                <audio :src="item.audio" controls style="visibility: hidden; height:50px" @ended="stop"></audio>
                             </div>
                         </div>
                     </div>
-                </li>
-                <li class="myinfo" v-for="index in myChat" :key="index.id">
-                    <!-- 我的消息 -->
-                    <div class="adminInfo" v-if="chat.uname==index.uname">
-                        <div class="message">
-                            <div class="messInfo" v-if="index.type=='text'">{{index.context}}</div>
-                            <div class="messInfo" v-else>{{index.conmp}}</div>
-                        </div>
-                        <div class="winAvatar" draggable="true">
-                            <el-image :src="myAvatar"></el-image>
-                        </div>
-                    </div>
-                </li>
-            </ul>
-            <div>
-                
+                </div>
             </div>
+            <div class="write"></div>
         </el-main>
         <div ref="rowResize" class="rowResize" @mousedown="rowResize" @mouseup="topUp"></div>
-        <el-footer id="write" height="30%">
+        <el-footer id="write" height="30%" @click.native="txt">
             <el-input
+                id="text"
                 type="textarea"
                 placeholder="在此处编辑信息"
                 v-model="textarea"
-                autosize>
+                autosize
+                @keydown.enter.native="send">
             </el-input>
-            <el-button class="send" size="mini" type="primary">点击发送&#x3000;(s)</el-button>
+            <el-button class="send" size="mini" @click="send()">点击发送&#x3000;(s)</el-button>
+            <el-tooltip class="item" effect="dark" content="语音" placement="top">
+                <el-button icon="el-icon-tj-yuyin" size="mini" round class="yuyin" @click="record"></el-button>
+            </el-tooltip>
         </el-footer>
     </el-container>
 </template>
 <script>
+let Audio = false;
+let recorder = new Recorder({
+  bitRate: 40, //参数采样率
+  sampleRate: 10100,
+  success: function (v) {
+    this.Audio = true;
+  },
+  error: function (v) {
+    this.Audio = false;
+    alert("录音设备损坏");
+  },
+  fix: function (v) {
+    alert("您的设备不支持录音");
+  },
+});
 export default {
-    props: ['chatList'],
     data() {
         return {
+            play: false,
             textarea: '',
-            chat: this.$props.chatList,
-            myChat: [{
-                id: 1, type: 'text', conmp: '', context: '是的是的，你说的真对',uname: '赵旭小狗'
-            },
-            {
-                id: 2, type: 'text', conmp: '', context: '是的是的，你说的真对',uname: '赵旭小狗'
-            }],
             myAvatar: window.sessionStorage.getItem('avatar'),
-            id: window.sessionStorage.getItem('token')
+            id: window.sessionStorage.getItem('uid'),
+            reco: false,
+            chatList: [],
+            heardName: '',
+            user: {},
         }
     },
-    watch: {
-        chatList(val) {
-            this.chat = val
+    mounted() {
+        const _this = this
+        this.chat.$on('msg', data=>{
+            _this.chatList = data.message
+            _this.heardName = data.uname
+            _this.user = data
+        })
+        const main = document.getElementById('main')
+        const text = document.getElementById('text')
+        main.scrollTop = main.scrollHeight
+        text.focus()
+    },
+    created() {
+        const _this = this
+        this.chat.$on('first', data=>{
+            _this.heardName = data[0].be.uname
+            _this.chatList = data[0].msgArr
+            _this.user = {
+                headImg: data[0].be.head_img,
+                uid: data[0].be.uid,
+                uname: data[0].be.uname
+            }
+        })
+    },
+    sockets: {
+        oToMessage(data) {
+            const main = document.getElementById('main')
+            // this.chatList.push(data)
+            main.scrollTop = main.scrollHeight
+            console.log(data)
         }
     },
     methods: {
@@ -90,16 +139,124 @@ export default {
                     document.onmousemove = null
                 }
             }
-            console.log(this.chat)
         },
         topUp() {
             document.onmousemove = null
             document.onmouseup = null
+        },
+        // 语音消息播放
+        voice(e) {
+            const ev = e.target.children[1]
+            const cla = e.target.children[0]
+            this.play = !this.play
+            if(this.play===true) {
+                cla.classList.add('voicePlay')
+                ev.play()
+            }else{
+                cla.classList.remove('voicePlay')
+                ev.pause()
+            }
+            
+        },
+        // 语音播放完毕
+        stop() {
+            const cla = document.getElementById('bg')
+            cla.classList.remove('voicePlay')
+        },
+        // 发送消息
+        send() {
+            let sendObj = {
+                uid: window.sessionStorage.getItem('uid'),
+                sid: this.user.uid,
+                audio: null,
+                message: this.textarea,
+                type: 'text',
+                head_img: window.sessionStorage.getItem('avatar'),
+                uname: window.sessionStorage.getItem('username'),
+                is_read: 0,
+                send_date: this.$getDate(),
+                send_time: this.$getTime(),
+                audio_isRead: 1,
+                m_id: Date.now(),
+                be_uname: this.user.uname,
+                be_head_img: this.user.head_img,
+            }
+            this.$socket.emit('puoToMessage', sendObj)
+            this.chatList.push(sendObj)
+            this.textarea = null
+            // 自动到最底部
+            const main = document.getElementById('main')
+            const text = document.getElementById('text')
+            main.scrollTop = main.scrollHeight
+            text.focus()
+            console.log(this.user)
+        },
+        // 发送语音消息
+        record() {
+            this.reco = !this.reco
+            if(this.reco ==true) {
+                if(this.Audio = false) {
+                    return this.alert.error('不支持语音')
+                }
+                recorder.start()
+            }else {
+                let _this = this
+                recorder.getBlob(function(blob){
+                    let sendObj = {
+                        uid: window.sessionStorage.getItem('uid'),
+                        sid: _this.user.uid,
+                        audio: blob,
+                        message: null,
+                        type: 'audio/mp3',
+                        head_img: window.sessionStorage.getItem('avatar'),
+                        uname: window.sessionStorage.getItem('username'),
+                        is_read: 1,
+                        send_date: _this.$getDate(),
+                        send_time: _this.$getTime(),
+                        audio_isRead: 0,
+                        m_id: Date.now(),
+                        be_uname: _this.user.uname,
+                        be_head_img: _this.user.head_img,
+                    }
+                    _this.$socket.compress(true).emit('puoToMessage', sendObj)
+                    sendObj.audio = URL.createObjectURL(blob)
+                    _this.chatList.push(sendObj)
+                })
+                recorder.stop();
+                const main = document.getElementById('main')
+                const text = document.getElementById('text')
+                main.scrollTop = main.scrollHeight
+                text.focus()
+                return false
+            }
+        },
+        // 点击获取历史消息
+        async history() {
+            const {data:ret} = await this.axios.get('/getHistoryPage', {params: {uid: this.id, sid: this.user.uid, m_id: this.chatList[0].m_id  ,}})
+            ret.data.forEach(element => {
+                this.chatList.unshift(element)
+            });
+            if(ret.data.length==0) {
+                return this.alert.warning('无更多消息')
+            }
+        },
+        txt() {
+            const text = document.getElementById('text')
+            text.focus()
         }
     }
 }
 </script>
 <style lang="scss" scope>
+    // 隐藏滚动条
+    #main {
+        overflow-y: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none; 
+    }
+    #main::-webkit-scrollbar {
+        display: none;
+    }
     .chatWin {
         position: relative;
         .el-header,.el-main,.el-footer {
@@ -109,6 +266,7 @@ export default {
             text-align: left;
             border-bottom: 1px solid #e6e6e6;
             line-height: 70px;
+            background-color: #ff9645;
             .username {
                 font-size: 18px;
                 padding: 20px;
@@ -133,85 +291,92 @@ export default {
                 position: absolute;
                 right: 5%;
                 bottom: 15%;
+                background-color: #ff9645;
+            }
+            .yuyin {
+                position: absolute;
+                left: 5%;
+                bottom: 12%;
+                background-color: #ff9645;
             }
         }
         .el-main {
-            ul {
-                clear: both;
-                width: 100%;
+            .write {
+                height: 50px;
             }
-            .adverse {
-                align-self: flex-start;
-                margin-top: 10px;
-                margin-left: 10px;
-                .info {
-                    .chatBox {
-                        display: flex;
-                        // justify-content: center;
-                        .winAvatar {
-                            width: 40px;
-                            height: 40px;
-                            border: 1px solid #e6e6e6;
-                            border-radius: 4px;
-                            box-sizing: border-box;
-                            .el-image {
-                                width: 100%;
-                                height: 100%;
-                            }
-                        }
-                        .message {
-                            // position: relative;
-                            margin-left: 10px;
-                            margin-bottom: 10px;
-                            .messInfo {
-                                padding-top: 10px;
-                                padding-bottom: 10px;
-                                padding: 10px;
-                                border-radius: 4px;
-                                background-color: #888;
-                                max-width: 200px;
-                                display: block;
-                            }
-                        }
-                    }
-                }
+            .record-wrapper {
+                margin: 4px;
+                padding: 4px;
             }
-            // 我的消息
-            .myinfo {
-                clear: both;
-                display: block;
-                margin-top: 10px;
-                margin-right: 10px;
-                list-style-type: none;
-                .adminInfo {
-                    float: right;
+            .time {
+                
+            }
+            .msg {
+                display: flex;
+                flex-direction: row;
+                .dateFlex {
                     display: flex;
-                    .message {
-                        margin-right: 10px;
-                        margin-bottom: 10px;
-                        .messInfo {
-                            padding-top: 10px;
-                            padding-bottom: 10px;
-                            padding: 10px;
-                            border-radius: 4px;
-                            background-color: #ff9645;
-                            max-width: 200px;
-                            display: block;
-                        }
-                    }
-                    .winAvatar {
-                        width: 40px;
-                        height: 40px;
-                        border: 1px solid #e6e6e6;
-                        border-radius: 4px;
-                        box-sizing: border-box;
-                        .el-image {
-                            width: 100%;
-                            height: 100%;
-                        }
-                    }
+                    flex-direction: column;
                 }
+                .message-wrapper {
+                    max-width: 220px;
+
+                    margin: 0px 10px 0px 10px;
+
+                    .message {
+                        margin: 8px;
+                        word-wrap: break-word; //英文换行
+                        text-align: left;
+                    }
             }
+
+            .message-wrapper-left {
+                background-color: #e6e6e6;
+                border-radius: 0px 12px 12px 12px;
+            }
+
+            .message-wrapper-right {
+                background-color: #ff9645;
+                border-radius: 12px 0px 12px 12px;
+            }
+
+            .img {
+                flex: auto;
+                height: 36px;
+                width: 36px;
+                border-radius: 8px;
+            }
+            }
+            .msg-right {
+            flex-direction: row-reverse;
+            }
+            .msg-left {
+            flex-direction: row;
+            }
+        }
+    }
+
+    .bg {
+        background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAYCAYAAAAF6fiUAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMDY3IDc5LjE1Nzc0NywgMjAxNS8wMy8zMC0yMzo0MDo0MiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NzlFRDZDRDNENzlFMTFFNkJDN0NFMjA2QTFFRTRDQkIiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NzlFRDZDRDJENzlFMTFFNkJDN0NFMjA2QTFFRTRDQkIiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MTAxQkEzQ0RENzM2MTFFNjgyMEI5MTNDRkQ0OTM5QUEiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MTAxQkEzQ0VENzM2MTFFNjgyMEI5MTNDRkQ0OTM5QUEiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4K4iKVAAACUUlEQVR42uSazytEURTHvTHjR4kaU8xsSDZSdmbjx4oSK8XGQrJlpSwYTSmxEWWhUIpsZK3kD7DRNBuSBZFCNjZ+JPKcV6ecXu/d3sy7595bc+vbfXPue5/749z77o83lm3bZYYFC8RZqAbQAigP2tXNj5aZF7gdkAZNk9+7WvnOCCgxRUCb9n/o1sk3pUH6QDHF/GNsoM+QeYfiy6qkFeLZDBb0GlTB4AAR/xXT9nXxZVa0WCekQd9Y0HOJjg3CHySviiZmfjO3AyIhnu0gBc0wjAIR/wLtW8z87aAOWAI9gqaYRoAff4ZUoi7EKCiUP462j4CdSCrfK4N1Ahpi6I0i/hPa50M4oFB+Dbm/SzXfL5MD4rUogxP8+Itozynm59E+q5ovyuQdHxphWh568XvR5kxq1SEn40L4e0XMA1L4EcEe7RTjLqYdqRf/gezQUwr5LxjXq+aLHPCFcTmTA7z4tutIQhXfLiJPKXyRA/oxzgW8v9DgxU+S62eF/ATGr6r5fg26Corj9RHD4Z0fvwfjS9CbQn4bxrfK+R6TyzxZNk260solTL4i/g3al10TsMXIryA72T7VfK8MnJO8X9CKy14lafXjxx8jFUsSeyUzfxhtPwHPoqTy/TJJMJzJiPgNpJdsuNJizPwztB/q4JtwHN2KW3sn3HuMOouR30l6bbsOvgkOyGIBnaPbRldalJl/h2knuvgmOKAWNAFKMUz4Iv4O6Z1xXXxTPxtazHy6khnVyS/Fb8IDpHGyuvmWgX9L4Q4toDnQFWhNN/9PgAEAR4w1ULjdCbEAAAAASUVORK5CYII=) right 0 no-repeat;
+        width: 24px;
+        height: 24px;
+        background-size: 400%;
+    }
+
+    .voicePlay {
+        animation-name: voicePlay;
+        animation-duration: 1s;
+        animation-direction: normal;
+        animation-iteration-count: infinite;
+        animation-timing-function: steps(3);
+    }
+
+    @keyframes voicePlay {
+        0% {
+            background-position: 0;
+        }
+        100% {
+            background-position: 100%;
         }
     }
 </style>

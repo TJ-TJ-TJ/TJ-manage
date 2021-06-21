@@ -4,7 +4,7 @@
             <div class="avatar">
                 <el-badge is-dot type='success' class="state">
                     <el-image 
-                    src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"></el-image>
+                    :src="avatar"></el-image>
                 </el-badge>
                 
             </div>
@@ -31,9 +31,9 @@
                     <i class="el-icon-menu"></i>
                     <span slot="title">更多</span>
                 </el-menu-item>
-                <el-menu-item>
-                    <i class="el-icon-setting"></i>
-                    <span slot="title">设置</span>
+                <el-menu-item @click="quit">
+                    <i class="el-icon-switch-button"></i>
+                    <span slot="title">退出</span>
                 </el-menu-item>
             </el-menu>
         </el-aside>
@@ -44,8 +44,22 @@
 </template>
 <script>
 export default {
+    data() {
+        return {
+            avatar: sessionStorage.getItem('avatar')
+        }
+    },
     created() {
         window.document.title = '途家-管理面板'
+        this.$socket.open()
+    },
+    methods: {
+        quit() {
+            sessionStorage.clear()
+            this.$socket.close()
+            this.alert.success('退出成功')
+            this.$router.push('/login')
+        }
     }
 }
 </script>
