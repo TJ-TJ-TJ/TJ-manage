@@ -206,7 +206,7 @@ export default {
                     return this.$message.error('不支持语音')
                 }
                 recorder.start()
-                this.Toast.loading({
+                this.$toast.loading({
                     message: '正在录音...',
                     duration: 0
                 })
@@ -234,8 +234,8 @@ export default {
                     _this.chatList.push(sendObj)
                 })
                 recorder.stop();
-                this.Toast.clear()
-                this.Toast.success('发送成功')
+                this.$toast.clear()
+                this.$toast.success('发送成功')
                 const main = document.getElementById('main')
                 const text = document.getElementById('text')
                 main.scrollTop = main.scrollHeight
@@ -245,7 +245,7 @@ export default {
         },
         // 点击获取历史消息
         async history() {
-            const {data:ret} = await this.axios.get('/getHistoryPage', {params: {uid: this.id, sid: this.user.uid, m_id: this.chatList[0].m_id  ,}})
+            const {data:ret} = await this.axios.get('/getHistoryPage', {params: {uid: this.id, sid: this.user.uid, m_id: this.chatList[0].m_id,}})
             ret.data.forEach(element => {
                 this.chatList.unshift(element)
             });

@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
-import './element.js'
+
+// import './element.js'
 import 'element-ui/lib/theme-chalk/index.css'
 import './vant.js'
 import 'vant/lib/index.css'
@@ -23,7 +24,6 @@ Vue.use(new VueSocketIO({
     }
   }), //连接服务端
 }))
-
 
 Vue.prototype.chat = new Vue()
 
