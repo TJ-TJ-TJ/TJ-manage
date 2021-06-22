@@ -43,7 +43,6 @@
                     </div>
                 </div>
             </div>
-            <div class="write"></div>
         </el-main>
         <div ref="rowResize" class="rowResize" @mousedown="rowResize" @mouseup="topUp"></div>
         <el-footer id="write" height="30%" @click.native="txt">
@@ -204,7 +203,7 @@ export default {
             this.reco = !this.reco
             if(this.reco ==true) {
                 if(this.Audio = false) {
-                    return this.alert.error('不支持语音')
+                    return this.$message.error('不支持语音')
                 }
                 recorder.start()
                 this.Toast.loading({
@@ -251,7 +250,7 @@ export default {
                 this.chatList.unshift(element)
             });
             if(ret.data.length==0) {
-                return this.alert.warning('无更多消息')
+                return this.$message.warning('无更多消息')
             }
         },
         txt() {
@@ -322,6 +321,9 @@ export default {
             .record-wrapper {
                 margin: 4px;
                 padding: 4px;
+            }
+            .record-wrapper:last-child{
+                margin-bottom: 100px;
             }
             .time {
                 

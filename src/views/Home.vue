@@ -57,7 +57,7 @@ export default {
         quit() {
             sessionStorage.clear()
             this.$socket.close()
-            this.alert.success('退出成功')
+            this.$message.success('退出成功')
             this.$router.push('/login')
         }
     }

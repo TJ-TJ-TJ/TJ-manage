@@ -13,7 +13,7 @@ import VueSocketIO from 'vue-socket.io'
 import ClientSocketIO from 'socket.io-client'
 Vue.use(new VueSocketIO({
   debug: false,
-  connection: ClientSocketIO.connect('http://kikyou.vip:9000',{
+  connection: ClientSocketIO.connect('https://kf.testw.top',{
     autoConnect: false,
     transports: ['websocket'],
     auth: {
@@ -50,7 +50,7 @@ Vue.prototype.$getDate = () => {
     return `${hh}:${mm}`
   }
 
-// axios.defaults.baseURL = 'http://localhost:9000'
+axios.defaults.baseURL = 'https://kf.testw.top'
 
 axios.interceptors.request.use(config =>{
   config.headers.Authorization = window.sessionStorage.getItem('uid')

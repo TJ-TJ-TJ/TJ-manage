@@ -45,12 +45,12 @@ export default {
         async login() {
             const {data: ret} = await this.axios.post('/login', this.ruleForm)
             if(ret.code!==200) {
-                return this.alert.error('用户名或密码错误')
+                return this.$message.error('用户名或密码错误')
             }else {
                 window.sessionStorage.setItem('uid', ret.data[0].uid)
                 window.sessionStorage.setItem('avatar', ret.data[0].head_img)
                 window.sessionStorage.setItem('username', ret.data[0].username)
-                this.alert.success('登录成功')
+                this.$message.success('登录成功')
                 this.$router.push('/')
                 this.$socket.open()
                 return
