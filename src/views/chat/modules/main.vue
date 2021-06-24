@@ -1,10 +1,9 @@
 <template>
     <el-container class="chatWin">
         <el-header>
-            
             <span class="username">{{heardName}}</span>
         </el-header>
-        <!-- <el-main v-if="chatList.uname==''"></el-main> -->
+        <!-- <el-main v-if="user.length==0"></el-main> -->
         <el-main id="main">
             <el-button type="info" @click="history">获取历史消息</el-button>
             <div class="record-wrapper" v-for="(item,i) in chatList" :key="item.id">
@@ -14,10 +13,10 @@
                             <img class="img" :src="myAvatar" />
                         </div>
                         <div class="dateFlex">
-                            <div>{{item.send_date+'/'+item.send_time}}</div>
-                            <div class="message-wrapper message-wrapper-right">
+                            <div style="text-align: right; margin-right: 5px">{{item.send_date+'/'+item.send_time}}</div>
+                            <div class="message-wrapper message-wrapper-right" :style="item.type=='audio/mp3'?'width: 80px':'width: auto;'">
                                 <div class="message" v-if="item.type=='text'">{{ item.message }}</div>
-                                <div style="width: 100px; height:20px" class="message" v-else-if="item.type == 'audio/mp3'" @click="voice">
+                                <div style="width: 100px; height:20px" class="message" v-else-if="item.type == 'audio/mp3'" @click="voice($event,i)">
                                     <div class="bg" id="bg"></div>
                                     <audio ref="refaudio" :src="item.audio" @ended="stop"></audio>
                                 </div>
@@ -31,13 +30,13 @@
                         <img class="img" :src="item.head_img" />
                     </div>
                     <div class="dateFlex">
-                        <div>{{item.send_date+'/'+item.send_time}}</div>
-                        <div class="message-wrapper message-wrapper-left">
+                        <div style="text-align: left; margin-left:5px;">{{item.send_date+'/'+item.send_time}}</div>
+                        <div class="message-wrapper message-wrapper-left" :style="item.type=='audio/mp3'?'width: 80px':'width: auto;'">
                             <div class="message" v-if="item.type=='text'">{{ item.message }}</div>
                             <div style="width: 100%; height: 24px" class="message" v-else-if="item.type == 'audio/mp3'" @click.stop="voice($event,i)">
                                 <div class="bg" id="bg"></div>
                                 <audio :src="item.audio" controls style="visibility: hidden; height:50px" @ended="stop"></audio>
-                                <el-badge v-show="item.audio_isRead==0"  is-dot class="itemAudio"></el-badge>
+                                <el-badge :hidden="item.audio_isRead==1"  is-dot class="itemAudio"></el-badge>
                             </div>
                         </div>
                     </div>
@@ -56,7 +55,7 @@
             </el-input>
             <el-button class="send" size="mini" @click="send()">点击发送&#x3000;(s)</el-button>
             <el-tooltip class="item" effect="dark" content="语音" placement="top">
-                <el-button icon="el-icon-tj-yuyin" size="mini" round class="yuyin" @click="record"></el-button>
+                <el-button size="mini" round class="yuyin icon iconfont" @click="record">&#xe681;</el-button>
             </el-tooltip>
         </el-footer>
     </el-container>
@@ -88,6 +87,7 @@ export default {
             chatList: [],
             heardName: '',
             user: {},
+            msgList: []
         }
     },
     mounted() {
@@ -96,6 +96,8 @@ export default {
             _this.chatList = data.message
             _this.heardName = data.uname
             _this.user = data
+            _this.msgList = data.userList
+            console.log('msg',data)
         })
         const main = document.getElementById('main')
         const text = document.getElementById('text')
@@ -105,6 +107,9 @@ export default {
     created() {
         const _this = this
         this.chat.$on('first', data=>{
+            if(data.length ==0) {
+                return
+            }
             _this.heardName = data[0].be.uname
             _this.chatList = data[0].msgArr
             _this.user = {
@@ -117,9 +122,7 @@ export default {
     sockets: {
         oToMessage(data) {
             const main = document.getElementById('main')
-            // this.chatList.push(data)
             main.scrollTop = main.scrollHeight
-            console.log(data)
         }
     },
     methods: {
@@ -145,26 +148,25 @@ export default {
             document.onmouseup = null
         },
         // 语音消息播放
-        async voice(e,i) {
+        voice(e,i) {
             const ev = e.target.children[1]
             const cla = e.target.children[0]
             this.play = !this.play
             if(this.play===true) {
                 cla.classList.add('voicePlay')
+                if(cla.classList == undefined) return
                 ev.play()
+                console.log(this.chatList[i])
+                if(this.user.uid==this.chatList[i].uid) {
+                    this.chatList[i].audio_isRead = 1
+                    this.$set(this.chatList, i, this.chatList[i])
+                    this.axios.post('/updateVoiceRead', {uid: this.chatList[i].uid, sid: this.id, m_id: this.chatList[i].m_id,})
+                }
             }else{
                 cla.classList.remove('voicePlay')
+                if(cla.classList == undefined) return
                 ev.pause()
             }
-            this.chatList[i].audio_isRead=1
-            this.$set(this.chatList,i,this.chatList[i])
-            //向父组件传值
-            // 更新语音消息为以读状态
-            let {data:res} = await this.axios.post('/updateVoiceRead',{
-                uid:this.chatList[i].uid,
-                sid:this.chatList[i].sid,
-                m_id:this.chatList[i].m_id
-            })
         },
         // 语音播放完毕
         stop() {
@@ -173,6 +175,9 @@ export default {
         },
         // 发送消息
         send() {
+            if(this.chatList.length==0) {
+                return this.$toast.fail('未选择联系人')
+            }
             let sendObj = {
                 uid: window.sessionStorage.getItem('uid'),
                 sid: this.user.uid,
@@ -201,6 +206,9 @@ export default {
         // 发送语音消息
         record() {
             this.reco = !this.reco
+            if(this.chatList.length==0) {
+                return this.$toast.fail('未选择联系人')
+            }
             if(this.reco ==true) {
                 if(this.Audio = false) {
                     return this.$message.error('不支持语音')
@@ -245,12 +253,15 @@ export default {
         },
         // 点击获取历史消息
         async history() {
-            const {data:ret} = await this.axios.get('/getHistoryPage', {params: {uid: this.id, sid: this.user.uid, m_id: this.chatList[0].m_id,}})
+            if(this.chatList.length==0) {
+                return this.$toast.fail('当前未选择联系人')
+            }
+            const {data:ret} = await this.axios.get('/getHistoryPage', {params: {uid: this.id, sid: this.user.uid, m_id: this.chatList[0].m_id, pageSize: 2}})
             ret.data.forEach(element => {
                 this.chatList.unshift(element)
             });
             if(ret.data.length==0) {
-                return this.$message.warning('无更多消息')
+                return this.$toast.warning('无更多消息')
             }
         },
         txt() {
@@ -304,7 +315,8 @@ export default {
                 position: absolute;
                 right: 5%;
                 bottom: 15%;
-                height: 50px;
+                height: 30px;
+                width: 100px;
                 background-color: #ff9645;
             }
             .yuyin {
@@ -338,24 +350,24 @@ export default {
                 }
                 .message-wrapper {
                     max-width: 220px;
-
                     margin: 0px 10px 0px 10px;
 
                     .message {
                         margin: 8px;
                         word-wrap: break-word; //英文换行
-                        text-align: left;
                     }
             }
 
             .message-wrapper-left {
                 background-color: #e6e6e6;
                 border-radius: 0px 12px 12px 12px;
+                text-align: left;
             }
 
             .message-wrapper-right {
                 background-color: #ff9645;
                 border-radius: 12px 0px 12px 12px;
+                text-align: left;
             }
 
             .img {
@@ -400,6 +412,6 @@ export default {
     .itemAudio {
         position: absolute !important;
         top: 33px;
-        right: -10px;
+        right: 20px;
     }
 </style>

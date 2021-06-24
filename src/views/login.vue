@@ -8,7 +8,7 @@
                         <el-input v-model="ruleForm.uname"></el-input>
                     </el-form-item>
                     <el-form-item label="密码：" prop="upwd">
-                        <el-input type="password" v-model="ruleForm.upwd"></el-input>
+                        <el-input type="password" v-model="ruleForm.upwd" @keydown.enter.native="login"></el-input>
                     </el-form-item>
                     <el-form-item>
                         <el-button class="login" type="primary" @click="login">登录</el-button>
@@ -52,7 +52,7 @@ export default {
                 window.sessionStorage.setItem('username', ret.data[0].username)
                 this.$message.success('登录成功')
                 this.$router.push('/')
-                this.$socket.open()
+                // this.$socket.open()
                 return
             }
         },
@@ -92,7 +92,7 @@ export default {
             margin-top: 200px;
             background-color: transparent;
             border: none;
-            box-shadow: none;
+            box-shadow: none !important;
             .el-form {
                 margin-top: 50px;
                 .el-form-item {

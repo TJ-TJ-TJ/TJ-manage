@@ -16,7 +16,7 @@ Vue.use(new VueSocketIO({
   debug: false,
   connection: ClientSocketIO.connect('https://kf.testw.top',{
     autoConnect: false,
-    transports: ['websocket'],
+    transports: ['polling','websocket'],
     auth: {
       imgPath: window.sessionStorage.getItem('avatar'),
       uid: window.sessionStorage.getItem('uid'), //到时候根据登录的账户不同 传递不同的id 用于确认私聊者的身份

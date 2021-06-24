@@ -1,57 +1,56 @@
 <template>
-  <el-aside width="200px" id="list">
-    <div class="search">
-      <el-input
-        size="medium"
-        placeholder="请输入内容"
-        suffix-icon="el-icon-search"
-        v-model="search"
-        v-if="searchBtn == false ? true : false"
-      >
-      </el-input>
-      <el-popover
-        placement="right-start"
-        visible-arrow
-        width="200"
-        trigger="click"
-        v-if="searchBtn"
-      >
-        <el-input
-          size="medium"
-          placeholder="请输入内容"
-          prefix-icon="el-icon-search"
-          clearable
-          v-model="search"
-        >
-        </el-input>
-        <el-button slot="reference" icon="el-icon-search"></el-button>
-      </el-popover>
-    </div>
-    <div class="friendList">
-      <div class="user" ref="user" draggable="true" v-for="(index,i) in userList" :key="index.id"  @click="chatWrite(index.msgArr, index.be.uname, index.sid, index.be.head_img,i)">
-            <div class="userAvatar">
+    <el-aside width="200px" id="list">
+        <div class="search">
+            <el-input
+                size="medium"
+                placeholder="请输入内容"
+                suffix-icon="el-icon-search"
+                v-model="search"
+                v-if="searchBtn == false ? true : false"
+                >
+            </el-input>
+            <el-popover
+                placement="right-start"
+                visible-arrow
+                width="200"
+                trigger="click"
+                v-if="searchBtn"
+            >
+            <el-input
+                size="medium"
+                placeholder="请输入内容"
+                prefix-icon="el-icon-search"
+                clearable
+                v-model="search"
+                >
+                </el-input>
+                <el-button slot="reference" icon="el-icon-search"></el-button>
+            </el-popover>
+        </div>
+        <div class="friendList">
+            <div class="user" ref="user" draggable="true" v-for="(index,i) in userList" :key="index.id"  @click="chatWrite(index.msgArr, index.be.uname, index.sid, index.be.head_img,i)">
+                <div class="userAvatar">
                     <el-image
                         :src="index.be.head_img"
                     ></el-image>
+                </div>
+                <div class="info">
+                    <div class="uname">{{index.be.uname}}</div>
+                    <div class="news" v-if="index.msgArr[index.msgArr.length-1].type=='text'">{{index.msgArr[index.msgArr.length-1].message}}</div>
+                    <div class="news" v-else>[语音消息]</div>
+                </div>
+                <el-badge class="badgeNum" :hidden="index.chatNum==0?true:false" :value="index.chatNum"></el-badge>
             </div>
-        <div class="info">
-          <div class="uname">{{index.be.uname}}</div>
-          <div class="news" v-if="index.msgArr[index.msgArr.length-1].type=='text'">{{index.msgArr[index.msgArr.length-1].message}}</div>
-          <div class="news" v-else>[语音消息]</div>
         </div>
-        <el-badge :hidden="index.chatNum==0?true:false" :value="index.chatNum"></el-badge>
-      </div>
-    </div>
-    <div
-      ref="colResize"
-      class="colResize"
-      @mousedown="resizeRight"
-      @mouseup="rightUp"
-    ></div>
-  </el-aside>
+        <div
+            ref="colResize"
+            class="colResize"
+            @mousedown="resizeRight"
+            @mouseup="rightUp"
+            ></div>
+    </el-aside>
 </template>
 <script>
-let sum = 0
 export default {
 	data() {
         return {
@@ -59,32 +58,42 @@ export default {
             searchBtn: false,
             userList:[],
             hidden: true,
+            sid: null
         }
     },
     sockets: {
         oToMessage(data) {
             let  i = 0;
+            let sum=0
             for(var key in this.userList) {
                 if(this.userList[key].be.uid==data.uid){
                     this.userList[key].msgArr.push(data)
                     i += 1
+
+                    if(data.uid!==window.sessionStorage.getItem('recordCurrentSid')){
+                        sum++
+                    }
+                    this.userList[key].chatNum += sum
+                    this.$set(this.userList, key, this.userList[key])
                 }
             }
+            sum=0
             if(i==0){
                 this.userList.push(
-                        {
-                            be:{
-                                head_img:data.head_img,
-                                uid:data.uid,
-                                uname:data.uname
-                            },
-                            msgArr:[data],
-                            sid:data.sid,
-                            uid:data.uid
-                        }
-                    )
+                    {
+                        be:{
+                            head_img:data.head_img,
+                            uid:data.uid,
+                            uname:data.uname
+                        },
+                        chatNum: 1,
+                        msgArr:[data],
+                        sid:data.sid,
+                        uid:data.uid
+                    }
+                )
             }
-            this.updateMsgRead()
+            console.log("Aside:", data)
         }
     },
     methods: {
@@ -121,22 +130,35 @@ export default {
             this.updateMsgRead()
         },
         async chatWrite(message, uname, uid, head_img,i) {
-            this.chat.$emit('msg', {message: message,uname:uname, uid: uid, headImg: head_img})
+            window.sessionStorage.setItem('recordCurrentSid',uid)
+            this.chat.$emit('msg', {message: message,uname:uname, uid: uid, headImg: head_img, userList:this.userList   })
+            // this.updateMsgRead()
+            console.log(this.sid)
             this.userList[i].chatNum = 0
             this.$set(this.userList, i, this.userList[i])
             const {data:ret} = await this.axios.post('updateMsgRead',{uid:uid,sid:window.sessionStorage.getItem('uid')})
             if(ret.code !== 200) {
-                this.Toast.fail('网络错误')
+                this.$toast.fail('网络错误')
             }
+            let user = this.$refs.user
+            user.forEach((item,key)=>{
+                if(key==i) {
+                    user[key].style.backgroundColor = '#e3e3e3'
+                }else {
+                    user[key].style.backgroundColor = null
+                }
+            })
         },
         async updateMsgRead() {
+            let sum = 0
             this.userList.forEach((item, key)=>{
                 item.msgArr.forEach(index=>{
-                    if(item.sid===index.uid&&index.is_read==0||index.audio_isRead==0) {
+                    if(item.be.uid==index.uid&&index.is_read==0||item.be.uid==index.uid&&index.audio_isRead==0) {
+                        console.log(index)
                         sum++
                     }
+                    this.userList[key].chatNum = sum
                 })
-                this.userList[key].chatNum = sum
                 sum = 0
             })
         }
@@ -177,9 +199,17 @@ export default {
                 top: 10%;
                 .user {
                     height: 60px;
+                    min-width: 80px;
+                    width: 200px;
+                    max-width: 680px;
                     position: relative;
                     padding-top: 10px;
                     cursor: pointer;
+                    .badgeNum {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                    }
                     .userAvatar {
                         width: 50px;
                         height: 50px;

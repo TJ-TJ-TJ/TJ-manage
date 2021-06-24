@@ -2,7 +2,7 @@
       devServer: {
         open: true,//自动打开浏览器
         disableHostCheck: true,
-        proxy: 'https://kf.testw.top',
+    //     proxy: 'https://kf.testw.top',
       },
     
   lintOnSave: false,
