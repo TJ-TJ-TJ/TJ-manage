@@ -13,59 +13,45 @@
         </el-header>
         <el-main>
             <el-row class="user">
-                <el-col :span="5">
+                <el-col :span="6">
                     <el-card>
                         <div class="bj user">
                             <div class="flex">
                                 <div class="icon iconfont">&#xe657;</div>
                                 <div class="txt">
-                                    <div class="number">500</div>
+                                    <div class="number">{{userCount}}</div>
                                     <div class="title">用户量</div>
                                 </div>
                             </div>
-                            <div class="time">2021-06-26</div>
+                            <div class="time">{{day}}</div>
                         </div>
                     </el-card>
                 </el-col>
-                <el-col :span="5">
+                <el-col :span="6">
                     <el-card>
                         <div class="bj order">
                             <div class="flex">
                                 <div class="icon iconfont">&#xe664;</div>
                                 <div class="txt">
-                                    <div class="number">1000</div>
+                                    <div class="number">{{orderCount}}</div>
                                     <div class="title">订单数量</div>
                                 </div>
                             </div>
-                            <div class="time">2021-06-26</div>
+                            <div class="time">{{day}}</div>
                         </div>
                     </el-card>
                 </el-col>
-                <el-col :span="5">
-                    <el-card>
-                        <div class="bj line">
-                            <div class="flex">
-                                <div class="icon iconfont">&#xe6af;</div>
-                                <div class="txt">
-                                    <div class="number">100</div>
-                                    <div class="title">在线用户</div>
-                                </div>
-                            </div>
-                            <div class="time">2021-06-26</div>
-                        </div>
-                    </el-card>
-                </el-col>
-                <el-col :span="5">
+                <el-col :span="6">
                     <el-card>
                         <div class="bj deal">
                             <div class="flex">
                                 <div class="icon iconfont">&#xe69c;</div>
                                 <div class="txt">
-                                    <div class="number">￥60000000</div>
+                                    <div class="number">￥{{priceTotal}}</div>
                                     <div class="title">交易额度</div>
                                 </div>
                             </div>
-                            <div class="time">2021-06-26</div>
+                            <div class="time">{{day}}</div>
                         </div>
                     </el-card>
                 </el-col>
@@ -75,7 +61,29 @@
 </template>
 <script>
 export default {
-    
+    data() {
+        return {
+            userCount: '加载中...',
+            orderCount: '加载中...',
+            priceTotal: '加载中...',
+            day: '加载中...'
+        }
+    },
+    created() {
+        const _this = this
+        this.chat.$on('result', data=>{
+            _this.userCount = data.userCount
+            _this.orderCount = data.orderCount
+            _this.priceTotal = data.priceTotal
+            _this.day = _this.$getDate()
+            window.sessionStorage.setItem('result', JSON.stringify(data))
+        })
+        const count = JSON.parse(window.sessionStorage.getItem('result'))
+        this.userCount = count.userCount
+        this.orderCount = count.orderCount
+        this.priceTotal = count.priceTotal
+        this.day = this.$getDate()
+    },
 }
 </script>
 <style lang="scss" scope>
@@ -101,6 +109,7 @@ export default {
             .el-row {
                 margin: 50px;
                 padding: 30px;
+                margin-left: 10%;
                 .el-col {
                     height: 150px;
                     margin: 2%;

@@ -342,9 +342,6 @@ export default {
             .record-wrapper:last-child{
                 margin-bottom: 100px;
             }
-            .time {
-                
-            }
             .msg {
                 display: flex;
                 flex-direction: row;

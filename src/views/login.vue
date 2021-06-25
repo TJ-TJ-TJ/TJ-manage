@@ -52,9 +52,13 @@ export default {
                 window.sessionStorage.setItem('username', ret.data[0].username)
                 this.$message.success('登录成功')
                 this.$router.push('/')
-                // this.$socket.open()
+                const{data:result} = await this.axios.get('https://tj.testw.top/v1/dataCollect/')
+                if(result.code==200) {
+                    this.chat.$emit('result',result.result)
+                }
                 return
             }
+            
         },
         reset() {
             this.$refs.ruleForm.resetFields()

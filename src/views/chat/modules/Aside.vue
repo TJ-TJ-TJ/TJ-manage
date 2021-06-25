@@ -28,7 +28,7 @@
             </el-popover>
         </div>
         <div class="friendList">
-            <div class="user" ref="user" draggable="true" v-for="(index,i) in userList" :key="index.id"  @click="chatWrite(index.msgArr, index.be.uname, index.sid, index.be.head_img,i)">
+            <div class="user" ref="user" :style="i==0?'background-color: #e3e3e3;':''" draggable="true" v-for="(index,i) in userList" :key="index.id"  @click="chatWrite(index.msgArr, index.be.uname, index.sid, index.be.head_img,i)">
                 <div class="userAvatar">
                     <el-image
                         :src="index.be.head_img"
@@ -127,17 +127,14 @@ export default {
             this.chat.$emit('first', ret.data)
             this.updateMsgRead()
         },
-        async chatWrite(message, uname, uid, head_img,i) {
+        chatWrite(message, uname, uid, head_img,i) {
             window.sessionStorage.setItem('recordCurrentSid',uid)
             this.chat.$emit('msg', {message: message,uname:uname, uid: uid, headImg: head_img, userList:this.userList   })
             // this.updateMsgRead()
             console.log(this.sid)
             this.userList[i].chatNum = 0
             this.$set(this.userList, i, this.userList[i])
-            const {data:ret} = await this.axios.post('updateMsgRead',{uid:uid,sid:window.sessionStorage.getItem('uid')})
-            if(ret.code !== 200) {
-                this.$toast.fail('网络错误')
-            }
+            this.axios.post('updateMsgRead',{uid:uid,sid:window.sessionStorage.getItem('uid')})
             let user = this.$refs.user
             user.forEach((item,key)=>{
                 if(key==i) {
