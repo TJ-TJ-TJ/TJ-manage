@@ -261,7 +261,7 @@ export default {
                 this.chatList.unshift(element)
             });
             if(ret.data.length==0) {
-                return this.$toast.warning('无更多消息')
+                return this.$message.warning('无更多消息')
             }
         },
         txt() {
