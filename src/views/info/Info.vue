@@ -17,13 +17,13 @@
                     <el-card>
                         <div class="bj user">
                             <div class="flex">
-                                <div class="el-icon-tj-yonghu ico"></div>
+                                <div class="icon iconfont">&#xe657;</div>
                                 <div class="txt">
-                                    <div class="number">50000000000000000000</div>
+                                    <div class="number">500</div>
                                     <div class="title">用户量</div>
                                 </div>
                             </div>
-                            <div class="time">2021-06-21</div>
+                            <div class="time">2021-06-26</div>
                         </div>
                     </el-card>
                 </el-col>
@@ -31,13 +31,13 @@
                     <el-card>
                         <div class="bj order">
                             <div class="flex">
-                                <div class="el-icon-tj-dingdan ico"></div>
+                                <div class="icon iconfont">&#xe664;</div>
                                 <div class="txt">
-                                    <div class="number">999999999999</div>
+                                    <div class="number">1000</div>
                                     <div class="title">订单数量</div>
                                 </div>
                             </div>
-                            <div class="time">2021-06-21</div>
+                            <div class="time">2021-06-26</div>
                         </div>
                     </el-card>
                 </el-col>
@@ -45,13 +45,13 @@
                     <el-card>
                         <div class="bj line">
                             <div class="flex">
-                                <div class="el-icon-tj-zaixian ico"></div>
+                                <div class="icon iconfont">&#xe6af;</div>
                                 <div class="txt">
-                                    <div class="number">1000</div>
+                                    <div class="number">100</div>
                                     <div class="title">在线用户</div>
                                 </div>
                             </div>
-                            <div class="time">2021-06-21</div>
+                            <div class="time">2021-06-26</div>
                         </div>
                     </el-card>
                 </el-col>
@@ -59,13 +59,13 @@
                     <el-card>
                         <div class="bj deal">
                             <div class="flex">
-                                <div class="el-icon-tj-icon_A ico"></div>
+                                <div class="icon iconfont">&#xe69c;</div>
                                 <div class="txt">
-                                    <div class="number">￥600000000000000000000000000000000</div>
+                                    <div class="number">￥60000000</div>
                                     <div class="title">交易额度</div>
                                 </div>
                             </div>
-                            <div class="time">2021-06-21</div>
+                            <div class="time">2021-06-26</div>
                         </div>
                     </el-card>
                 </el-col>
@@ -120,11 +120,12 @@ export default {
                                     align-items: center;
                                     margin-left: 10%;
                                     padding-top: 30px;
-                                    .ico {
+                                    .icon {
                                         width: 50px;
                                         height: 50px;
                                         font-size: 50px;
                                         margin-right: 10px;
+                                        color: #ff9645;
                                     }
                                     .txt {
                                         text-align: left;

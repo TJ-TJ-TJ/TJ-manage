@@ -97,12 +97,12 @@ export default {
             _this.heardName = data.uname
             _this.user = data
             _this.msgList = data.userList
-            console.log('msg',data)
+            const main = document.getElementById('main')
+            const text = document.getElementById('text')
+            main.scrollTop = main.scrollHeight
+            text.focus()
         })
-        const main = document.getElementById('main')
-        const text = document.getElementById('text')
-        main.scrollTop = main.scrollHeight
-        text.focus()
+        
     },
     created() {
         const _this = this
@@ -117,6 +117,11 @@ export default {
                 uid: data[0].be.uid,
                 uname: data[0].be.uname
             }
+            window.sessionStorage.setItem('recordCurrentSid', data[0].be.uid)
+            const main = document.getElementById('main')
+            const text = document.getElementById('text')
+            main.scrollTop = main.scrollHeight
+            text.focus()
         })
     },
     sockets: {

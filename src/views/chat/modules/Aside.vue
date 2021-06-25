@@ -69,7 +69,6 @@ export default {
                 if(this.userList[key].be.uid==data.uid){
                     this.userList[key].msgArr.push(data)
                     i += 1
-
                     if(data.uid!==window.sessionStorage.getItem('recordCurrentSid')){
                         sum++
                     }
@@ -93,7 +92,6 @@ export default {
                     }
                 )
             }
-            console.log("Aside:", data)
         }
     },
     methods: {
@@ -163,7 +161,7 @@ export default {
             })
         }
     },
-    async created() {
+    created() {
         this.asideLists()
         this.updateMsgRead()
     },
