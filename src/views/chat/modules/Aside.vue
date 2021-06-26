@@ -1,5 +1,6 @@
 <template>
     <el-aside width="200px" id="list">
+    <audio src="/ding.mp3" id="ding" ended></audio>
         <div class="search">
             <el-input
                 size="medium"
@@ -63,6 +64,9 @@ export default {
     },
     sockets: {
         oToMessage(data) {
+            const ding = document.getElementById("ding")
+            ding.play()
+            // console.log(ding)
             let  i = 0;
             let sum=0
             for(var key in this.userList) {
@@ -92,6 +96,9 @@ export default {
                     }
                 )
             }
+        },
+        heartBeat(data) {
+            console.log(data)
         }
     },
     methods: {

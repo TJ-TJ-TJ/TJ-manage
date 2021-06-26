@@ -12,15 +12,18 @@
                         <div class="img-wrapper">
                             <img class="img" :src="myAvatar" />
                         </div>
-                        <div class="dateFlex">
+                        <div class="dateFlex divFlex">
                             <div style="text-align: right; margin-right: 5px">{{item.send_date+'/'+item.send_time}}</div>
-                            <div class="message-wrapper message-wrapper-right" :style="item.type=='audio/mp3'?'width: 80px':'width: auto;'">
-                                <div class="message" v-if="item.type=='text'">{{ item.message }}</div>
-                                <div style="width: 100px; height:20px" class="message" v-else-if="item.type == 'audio/mp3'" @click="voice($event,i)">
-                                    <div class="bg" id="bg"></div>
-                                    <audio ref="refaudio" :src="item.audio" @ended="stop"></audio>
+                            <div class="msgBox">
+                                <div class="message-wrapper message-wrapper-right" :style="item.type=='audio/mp3'?'width: 80px':'width: auto;'">
+                                    <div class="message" v-if="item.type=='text'">{{ item.message }}</div>
+                                    <div style="width: 100px; height:20px" class="message" v-else-if="item.type == 'audio/mp3'" @click="voice($event,i)">
+                                        <div class="bg" id="bg"></div>
+                                        <audio ref="refaudio" :src="item.audio" @ended="stop"></audio>
+                                    </div>
                                 </div>
                             </div>
+                                
                         </div>
                             
                 </div>
@@ -31,8 +34,8 @@
                     </div>
                     <div class="dateFlex">
                         <div style="text-align: left; margin-left:5px;">{{item.send_date+'/'+item.send_time}}</div>
-                        <div class="message-wrapper message-wrapper-left" :style="item.type=='audio/mp3'?'width: 80px':'width: auto;'">
-                            <div class="message" v-if="item.type=='text'">{{ item.message }}</div>
+                        <div class="message-wrapper message-wrapper-left" :style="item.type=='audio/mp3'?'width: 80px':''">
+                            <div class="message" v-if="item.type=='text'">{{item.message}}</div>
                             <div style="width: 100%; height: 24px" class="message" v-else-if="item.type == 'audio/mp3'" @click.stop="voice($event,i)">
                                 <div class="bg" id="bg"></div>
                                 <audio :src="item.audio" controls style="visibility: hidden; height:50px" @ended="stop"></audio>
@@ -276,7 +279,7 @@ export default {
     }
 }
 </script>
-<style lang="scss" scope>
+<style lang="scss">
     // 隐藏滚动条
     #main {
         overflow-y: auto;
@@ -348,12 +351,14 @@ export default {
                 .dateFlex {
                     display: flex;
                     flex-direction: column;
+                    align-items: flex-end;
                     position:relative
                 }
                 .message-wrapper {
+                    align-self: baseline;
                     max-width: 220px;
                     margin: 0px 10px 0px 10px;
-
+                    min-height: 38px;
                     .message {
                         margin: 8px;
                         word-wrap: break-word; //英文换行
@@ -365,11 +370,14 @@ export default {
                 border-radius: 0px 12px 12px 12px;
                 text-align: left;
             }
-
             .message-wrapper-right {
                 background-color: #ff9645;
                 border-radius: 12px 0px 12px 12px;
-                text-align: left;
+                text-align: right;
+                .message {
+                    margin-top: 10px;
+                    padding: 7px;
+                }
             }
 
             .img {
