@@ -128,6 +128,9 @@ export default {
         oToMessage(data) {
             const main = document.getElementById('main')
             main.scrollTop = main.scrollHeight
+        },
+        heartBeat(data){
+            console.log(data);
         }
     },
     methods: {
