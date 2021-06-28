@@ -50,7 +50,7 @@ Vue.prototype.$getDate = () => {
     mm >= 10 ? '' : mm = '0' + mm
     return `${hh}:${mm}`
   }
-
+axios.defaults.validateStatus = status=>{return true}
 axios.defaults.baseURL = 'https://kf.testw.top'
 
 axios.interceptors.request.use(config =>{

@@ -52,8 +52,11 @@ export default {
                 window.sessionStorage.setItem('username', ret.data[0].username)
                 this.$message.success('登录成功')
                 this.$router.push('/')
-                const{data:result} = await this.axios.get('https://tj.testw.top/v1/dataCollect/')
-                if(result.code==200) {
+                const{data:result} = await this.axios.get('https://tj.testw.top/v1/dataCollect')
+                console.log(result)
+                if(result.ok==0) {
+                    return
+                }else {
                     this.chat.$emit('result',result.result)
                 }
                 return
